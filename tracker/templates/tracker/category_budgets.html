@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3 class="mb-3">Category Budgets <small class="text-muted fs-6">(this month)</small></h3>
+
+<div class="card p-3 mb-4">
+  <h6>Set a limit for a category</h6>
+  <form method="post" class="row g-2">
+    {% csrf_token %}
+    <div class="col-md-5">{{ form.category }}</div>
+    <div class="col-md-5">{{ form.monthly_limit }}</div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Save</button></div>
+  </form>
+  <small class="text-muted mt-2">Choosing a category that already has a budget updates its limit.</small>
+</div>
+
+{% for r in rows %}
+<div class="card p-3 mb-3">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0">{{ r.name }}</h6>
+    <form method="post" action="{% url 'category_budget_delete' r.id %}">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-danger">Remove</button>
+    </form>
+  </div>
+
+  {% if r.over %}
+    <div class="alert alert-danger py-2">⚠️ Over budget by ₹{{ r.over_by }}!</div>
+  {% elif r.percent >= 80 %}
+    <div class="alert alert-warning py-2">Careful! {{ r.percent }}% of your {{ r.name }} budget is used.</div>
+  {% endif %}
+
+  <div class="progress">
+    <div class="progress-bar {% if r.over %}bg-danger{% elif r.percent >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+         style="width: {{ r.bar }}%">{{ r.percent }}%</div>
+  </div>
+  <small class="text-muted">
+    ₹{{ r.spent }} spent of ₹{{ r.limit }}
+    {% if not r.over %}· ₹{{ r.left }} left{% endif %}
+  </small>
+</div>
+{% empty %}
+<p class="text-muted">No category budgets yet. Add one above.</p>
+{% endfor %}
+{% endblock %}

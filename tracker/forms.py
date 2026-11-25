@@ -1,5 +1,5 @@
 from django import forms
-from .models import Transaction, Category
+from .models import Transaction, Category, Budget
 
 
 class TransactionForm(forms.ModelForm):
@@ -24,4 +24,11 @@ class CategoryForm(forms.ModelForm):
         fields = ['name']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'New category'}),
+        }
+class BudgetForm(forms.ModelForm):
+    class Meta:
+        model = Budget
+        fields = ['monthly_limit']
+        widgets = {
+            'monthly_limit': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'e.g. 15000'}),
         }

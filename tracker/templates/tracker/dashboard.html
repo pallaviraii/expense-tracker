@@ -1,5 +1,32 @@
 {% extends 'base.html' %}
 {% block content %}
+
+<div class="card p-3 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h6 class="mb-0">Monthly Budget</h6>
+    <a href="{% url 'set_budget' %}" class="btn btn-sm btn-outline-primary">Set / Change Budget</a>
+  </div>
+  {% if budget_limit %}
+    {% if over_budget %}
+      <div class="alert alert-danger py-2">⚠️ Budget exceeded! You spent ₹{{ month_expense }} of ₹{{ budget_limit }} this month.</div>
+    {% elif budget_percent >= 80 %}
+      <div class="alert alert-warning py-2">Careful! You have used {{ budget_percent }}% of your budget.</div>
+    {% endif %}
+    <div class="progress">
+      <div class="progress-bar {% if over_budget %}bg-danger{% elif budget_percent >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+           style="width: {{ budget_percent }}%">{{ budget_percent }}%</div>
+    </div>
+    <small class="text-muted">₹{{ month_expense }} spent of ₹{{ budget_limit }} this month</small>
+  {% else %}
+    <p class="mb-0 text-muted">No budget set yet. Click "Set / Change Budget" to add one.</p>
+  {% endif %}
+</div>
+<div class="card p-3 mb-4">
+  <h6 class="mb-3">💡 Spending Insights</h6>
+  {% for i in insights %}
+    <div class="alert alert-{{ i.level }} py-2 mb-2">{{ i.icon }} {{ i.text }}</div>
+  {% endfor %}
+</div>
 <div class="row text-center mb-4">
   <div class="col-md-4"><div class="card p-3 border-success"><h6>Total Income</h6><h3 class="text-success">₹{{ total_income }}</h3></div></div>
   <div class="col-md-4"><div class="card p-3 border-danger"><h6>Total Expense</h6><h3 class="text-danger">₹{{ total_expense }}</h3></div></div>

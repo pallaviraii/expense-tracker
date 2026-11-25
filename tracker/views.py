@@ -7,9 +7,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
-
-from .models import Transaction, Category
-from .forms import TransactionForm, CategoryForm
+from datetime import date
+from .models import Transaction, Category, Budget
+from .forms import TransactionForm, CategoryForm, BudgetForm
+from .insights import get_insights
 
 
 def signup(request):
@@ -46,6 +47,33 @@ def dashboard(request):
                  .order_by('m'))
     month_labels = [x['m'].strftime('%b %Y') for x in monthly]
     month_data = [float(x['total']) for x in monthly]
+
+    # Budget alert (current month)
+    today = date.today()
+    month_expense = qs.filter(type='expense', date__year=today.year,
+                              date__month=today.month).aggregate(t=Sum('amount'))['t'] or 0
+    budget = Budget.objects.filter(user=request.user).first()
+    budget_limit = budget.monthly_limit if budget else None
+    budget_percent = 0
+    if budget_limit:
+        budget_percent = min(int(month_expense / budget_limit * 100), 100)
+
+    context = {
+        'total_income': total_income,
+        'total_expense': total_expense,
+        'balance': total_income - total_expense,
+        'recent': qs[:5],
+        'cat_labels': json.dumps(cat_labels),
+        'cat_data': json.dumps(cat_data),
+        'month_labels': json.dumps(month_labels),
+        'month_data': json.dumps(month_data),
+        'month_expense': month_expense,
+        'budget_limit': budget_limit,
+        'budget_percent': budget_percent,
+        'over_budget': bool(budget_limit and month_expense > budget_limit),
+        'insights': get_insights(qs),
+    }
+    return render(request, 'tracker/dashboard.html', context)
 
     context = {
         'total_income': total_income,
@@ -149,3 +177,18 @@ def category_delete(request, pk):
     if request.method == 'POST':
         cat.delete()
     return redirect('category_list')
+
+@login_required
+def set_budget(request):
+    budget = Budget.objects.filter(user=request.user).first()
+    if request.method == 'POST':
+        form = BudgetForm(request.POST, instance=budget)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.user = request.user
+            obj.save()
+            messages.success(request, 'Budget saved.')
+            return redirect('dashboard')
+    else:
+        form = BudgetForm(instance=budget)
+    return render(request, 'tracker/budget_form.html', {'form': form})
