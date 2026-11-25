@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>Categories</h3>
+<form method="post" class="d-flex gap-2 mb-3">
+  {% csrf_token %}
+  {{ form.name }}
+  <button class="btn btn-primary">Add</button>
+</form>
+<ul class="list-group">
+  {% for c in categories %}
+  <li class="list-group-item d-flex justify-content-between">
+    {{ c.name }}
+    <form method="post" action="{% url 'category_delete' c.pk %}">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-danger">Delete</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

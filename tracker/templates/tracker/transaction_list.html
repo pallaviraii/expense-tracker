@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+  <h3>Transactions</h3>
+  <a href="{% url 'transaction_add' %}" class="btn btn-primary">+ Add Transaction</a>
+</div>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-2">
+    <select name="type" class="form-select">
+      <option value="">All types</option>
+      <option value="income" {% if filters.type == 'income' %}selected{% endif %}>Income</option>
+      <option value="expense" {% if filters.type == 'expense' %}selected{% endif %}>Expense</option>
+    </select>
+  </div>
+  <div class="col-md-2">
+    <select name="category" class="form-select">
+      <option value="">All categories</option>
+      {% for c in categories %}
+      <option value="{{ c.id }}" {% if filters.category == c.id|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-2"><input type="date" name="start" value="{{ filters.start }}" class="form-control"></div>
+  <div class="col-md-2"><input type="date" name="end" value="{{ filters.end }}" class="form-control"></div>
+  <div class="col-md-2"><input type="text" name="q" value="{{ filters.q }}" placeholder="Search" class="form-control"></div>
+  <div class="col-md-2"><button class="btn btn-dark w-100">Filter</button></div>
+</form>
+
+<table class="table table-striped bg-white">
+  <thead><tr><th>Date</th><th>Category</th><th>Note</th><th>Type</th><th>Amount</th><th>Actions</th></tr></thead>
+  {% for t in transactions %}
+  <tr>
+    <td>{{ t.date }}</td>
+    <td>{{ t.category|default:"-" }}</td>
+    <td>{{ t.note }}</td>
+    <td>{{ t.get_type_display }}</td>
+    <td class="{% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">₹{{ t.amount }}</td>
+    <td>
+      <a href="{% url 'transaction_edit' t.pk %}" class="btn btn-sm btn-warning">Edit</a>
+      <a href="{% url 'transaction_delete' t.pk %}" class="btn btn-sm btn-danger">Delete</a>
+    </td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="6" class="text-center">No transactions found.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

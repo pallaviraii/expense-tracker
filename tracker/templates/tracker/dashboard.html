@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row text-center mb-4">
+  <div class="col-md-4"><div class="card p-3 border-success"><h6>Total Income</h6><h3 class="text-success">₹{{ total_income }}</h3></div></div>
+  <div class="col-md-4"><div class="card p-3 border-danger"><h6>Total Expense</h6><h3 class="text-danger">₹{{ total_expense }}</h3></div></div>
+  <div class="col-md-4"><div class="card p-3 border-primary"><h6>Balance</h6><h3>₹{{ balance }}</h3></div></div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-md-6"><div class="card p-3"><h6>Expenses by Category</h6><canvas id="pieChart"></canvas></div></div>
+  <div class="col-md-6"><div class="card p-3"><h6>Monthly Expenses</h6><canvas id="barChart"></canvas></div></div>
+</div>
+
+<div class="card p-3">
+  <div class="d-flex justify-content-between">
+    <h6>Recent Transactions</h6>
+    <a href="{% url 'transaction_add' %}" class="btn btn-sm btn-primary">+ Add</a>
+  </div>
+  <table class="table mt-2">
+    {% for t in recent %}
+    <tr>
+      <td>{{ t.date }}</td>
+      <td>{{ t.category|default:"-" }}</td>
+      <td>{{ t.note }}</td>
+      <td class="{% if t.type == 'income' %}text-success{% else %}text-danger{% endif %}">₹{{ t.amount }}</td>
+    </tr>
+    {% empty %}
+    <tr><td>No transactions yet.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  new Chart(document.getElementById('pieChart'), {
+    type: 'pie',
+    data: { labels: {{ cat_labels|safe }}, datasets: [{ data: {{ cat_data|safe }} }] }
+  });
+  new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: { labels: {{ month_labels|safe }},
+            datasets: [{ label: 'Expense (₹)', data: {{ month_data|safe }}, backgroundColor: '#dc3545' }] }
+  });
+</script>
+{% endblock %}
