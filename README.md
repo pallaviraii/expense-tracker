@@ -1,6 +1,6 @@
-# Expense Tracker
+# PennyPilot
 
-A Django web application to track personal income and expenses, with charts and filters.
+PennyPilot is a Django web app to track income and expenses, with budgets, insights, and charts.
 
 ## Features
 - User signup, login, logout (each user sees only their own data)
